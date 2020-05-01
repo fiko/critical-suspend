@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# When computer will suspend (default: 7 for 7% of battery)
+SUSPEND_BATTERY_LEVEL=7
+# When computer will shutdown (default: 5 for 5% of battery)
+SHUTDOWN_BATTERY_LEVEL=5
+
+# Getting battery charging status
+BATTERY=$(/usr/bin/acpi -b)
+CHECK_DIFF=$(echo ${BATTERY/*Discharging, /})
+
+# Exit if on charging
+if [[ $BATTERY == $CHECK_DIFF ]]
+then
+    exit 1
+fi
+
+# Getting integer battery level (i.e. : "19" for 19%)
+GET_BATTERY=$(echo ${CHECK_DIFF/\%*/})
+
+# Suspend event
+if (( $GET_BATTERY <= $SUSPEND_BATTERY_LEVEL ))
+then
+    /usr/bin/systemctl suspend
+fi
+
+# Shutdown event
+if (( $GET_BATTERY <= $SHUTDOWN_BATTERY_LEVEL ))
+then
+    /usr/sbin/shutdown 0
+fi
